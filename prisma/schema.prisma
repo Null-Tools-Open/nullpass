@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ServiceIdentifier {
+  DROP
+  MAILS
+  VAULT
+  DB
+}
+
+model User {
+  id                String                     @id @default(cuid())
+  email             String                     @unique
+  passwordHash      String?
+  displayName       String?
+  twoFactorEnabled  Boolean                    @default(false)
+  twoFactorSecret   String?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  migraited         Boolean                    @default(false)
+
+  sessions          Session[]
+  serviceAccess     UserServiceEntitlement[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  ip        String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model UserServiceEntitlement {
+  id                     String            @id @default(cuid())
+  userId                 String
+  service                ServiceIdentifier
+  tier                   String            @default("free")
+  isPremium              Boolean           @default(false)
+  accessFlags            Json?
+  metadata               Json?
+  customStorageLimit     Int?
+  customApiKeyLimit      Int?
+  polarCustomerId        String?
+  polarSubscriptionId    String?
+  polarSubscriptionStatus String?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_service_entitlements")
+  @@unique([userId, service])
+  @@index([service])
+}
