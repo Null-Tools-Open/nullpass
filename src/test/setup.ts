@@ -14,9 +14,9 @@ beforeAll(async () => {
   process.env.LOG_LEVEL = 'error'
   
   try {
-    execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+    execSync('npx prisma db push --skip-generate --accept-data-loss', { stdio: 'inherit' })
   } catch (error) {
-    console.warn('Migration deploy failed, assuming migrations are already applied:', error)
+    console.warn('Database push failed:', error)
   }
 })
 
