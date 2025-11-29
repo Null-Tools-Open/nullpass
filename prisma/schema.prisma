@@ -39,7 +39,6 @@ model User {
   email             String                     @unique
   passwordHash      String?
   avatar            String?                    @db.Text
-  name              String?
   displayName       String?
   twoFactorEnabled  Boolean                    @default(false)
   twoFactorSecret   String?
