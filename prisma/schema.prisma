@@ -14,20 +14,42 @@ enum ServiceIdentifier {
   DB
 }
 
+enum AuditAction {
+  USER_LOGIN
+  USER_LOGOUT
+  USER_REGISTER
+  PASSWORD_CHANGE
+  TWO_FACTOR_ENABLE
+  TWO_FACTOR_DISABLE
+  USER_UPDATE
+  USER_DELETE
+  SESSION_CREATE
+  SESSION_DELETE
+  SERVICE_ACCESS_GRANT
+  SERVICE_ACCESS_REVOKE
+  SERVICE_TIER_CHANGE
+  SUBSCRIPTION_CREATE
+  SUBSCRIPTION_UPDATE
+  SUBSCRIPTION_CANCEL
+  UNKNOWN
+}
+
 model User {
   id                String                     @id @default(cuid())
   email             String                     @unique
   passwordHash      String?
+  avatar            String?                    @db.Text
+  name              String?
   displayName       String?
   twoFactorEnabled  Boolean                    @default(false)
   twoFactorSecret   String?
   createdAt         DateTime                   @default(now())
   updatedAt         DateTime                   @updatedAt
   migraited         Boolean                    @default(false)
-
   sessions          Session[]
   serviceAccess     UserServiceEntitlement[]
-
+  auditLogs         AuditLog[]
+  
   @@map("users")
 }
 
@@ -38,32 +60,44 @@ model Session {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   @@map("sessions")
   @@index([userId])
   @@index([expiresAt])
 }
 
+model AuditLog {
+  id        String      @id @default(cuid())
+  action    AuditAction @default(UNKNOWN)
+  data      Json        @default("{}")
+  userId    String
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("audit_logs")
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
 model UserServiceEntitlement {
-  id                     String            @id @default(cuid())
-  userId                 String
-  service                ServiceIdentifier
-  tier                   String            @default("free")
-  isPremium              Boolean           @default(false)
-  accessFlags            Json?
-  metadata               Json?
-  customStorageLimit     Int?
-  customApiKeyLimit      Int?
-  polarCustomerId        String?
-  polarSubscriptionId    String?
+  id                      String            @id @default(cuid())
+  userId                  String
+  service                 ServiceIdentifier
+  tier                    String            @default("free")
+  isPremium               Boolean           @default(false)
+  accessFlags             Json?
+  metadata                Json?
+  customStorageLimit      Int?
+  customApiKeyLimit       Int?
+  polarCustomerId         String?
+  polarSubscriptionId     String?
   polarSubscriptionStatus String?
-  createdAt              DateTime          @default(now())
-  updatedAt              DateTime          @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  user                    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   @@map("user_service_entitlements")
   @@unique([userId, service])
   @@index([service])
