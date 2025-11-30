@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt'
 import { prisma } from '@/lib/prisma'
 import { handleCors, jsonResponse, errorResponse } from '@/lib/response'
 import { logger } from '@/lib/logger'
-import { protectRoute } from '@/lib/arcjet'
 import { z } from 'zod'
 
 // Thats the most important route in the whole project
@@ -45,12 +44,6 @@ export async function POST(request: NextRequest) {
   if (corsResponse) {
     logger.warn('CORS preflight blocked request.')
     return corsResponse
-  }
-
-  const blocked = await protectRoute(request, { requested: 5 })
-  if (blocked) {
-    logger.warn('Arcjet rate limit blocked request.')
-    return blocked
   }
 
   try {
