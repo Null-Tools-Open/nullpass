@@ -8,12 +8,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest run",
-    "test:watch": "vitest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio",
-    "migrate:all": "tsx scripts/migrate-all.ts"
+    "prisma:studio": "prisma studio"
   },
   "dependencies": {
     "@arcjet/inspect": "^1.0.0-beta.14",
@@ -35,10 +32,7 @@
     "@types/pg": "^8.10.9",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@vitest/ui": "^1.6.0",
     "prisma": "^5.19.1",
-    "tsx": "^4.16.2",
-    "typescript": "^5.5.4",
-    "vitest": "^1.6.0"
+    "typescript": "^5.5.4"
   }
 }
