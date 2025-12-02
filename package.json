@@ -12,15 +12,18 @@
     "test:watch": "vitest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "migrate:all": "tsx scripts/migrate-all.ts"
   },
   "dependencies": {
     "@arcjet/inspect": "^1.0.0-beta.14",
     "@arcjet/next": "^1.0.0-beta.14",
     "@prisma/client": "^5.19.1",
     "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
     "next": "^14.2.5",
+    "pg": "^8.11.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.8"
@@ -29,10 +32,12 @@
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.14.12",
+    "@types/pg": "^8.10.9",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitest/ui": "^1.6.0",
     "prisma": "^5.19.1",
+    "tsx": "^4.16.2",
     "typescript": "^5.5.4",
     "vitest": "^1.6.0"
   }
