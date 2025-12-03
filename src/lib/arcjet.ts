@@ -109,6 +109,10 @@ export async function protectRoute(
     return null;
   }
 
+  const origin = request.headers.get('origin')
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
+  const isAllowedOrigin = origin && allowedOrigins.includes(origin)
+
   try {
     const instance = options.useSensitiveInfo ? ajWithSensitiveInfo : aj;
     const decision = await instance.protect(request, { requested: options.requested ?? 1 });
@@ -161,7 +165,7 @@ export async function protectRoute(
       }
     }
 
-    if (decision.ip.isHosting()) {
+    if (decision.ip.isHosting() && !isAllowedOrigin) {
       logger.ups('Blocked hosting IP');
       return NextResponse.json(
         { error: "Forbidden" },

@@ -4,6 +4,7 @@ import { handleCors, jsonResponse, errorResponse } from '@/lib/response'
 import { requireAuth } from '@/lib/middleware'
 import { logger } from '@/lib/logger'
 import { protectRoute } from '@/lib/arcjet'
+import { createAuditLog } from '@/lib/audit'
 import { z } from 'zod'
 
 const updateProfileSchema = z.object({
@@ -92,7 +93,9 @@ export async function PATCH(request: NextRequest) {
       },
     })
 
-    logger.info('Profile updated:', auth.userId)
+    await createAuditLog(auth.userId, 'USER_UPDATE', {
+      fields: Object.keys(updateData),
+    })
 
     return jsonResponse({ user }, 200, request.headers.get('origin'))
   } catch (error: any) {

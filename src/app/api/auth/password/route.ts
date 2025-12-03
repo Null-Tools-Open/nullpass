@@ -5,6 +5,7 @@ import { handleCors, jsonResponse, errorResponse } from '@/lib/response'
 import { requireAuth } from '@/lib/middleware'
 import { logger } from '@/lib/logger'
 import { protectRoute } from '@/lib/arcjet'
+import { createAuditLog } from '@/lib/audit'
 import { z } from 'zod'
 
 const changePasswordSchema = z.object({
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    logger.info('Password changed:', auth.userId)
+    await createAuditLog(auth.userId, 'PASSWORD_CHANGE', {})
 
     return jsonResponse({ success: true, message: 'Password changed successfully' }, 200, request.headers.get('origin'))
   } catch (error: any) {

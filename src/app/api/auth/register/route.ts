@@ -7,6 +7,7 @@ import { handleCors, jsonResponse, errorResponse } from '@/lib/response'
 import { getSessionExpiresAt } from '@/lib/session'
 import { logger } from '@/lib/logger'
 import { protectRoute } from '@/lib/arcjet'
+import { createAuditLog } from '@/lib/audit'
 
 export async function POST(request: NextRequest) {
   const corsResponse = handleCors(request)
@@ -49,6 +50,8 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'
+
     const token = generateToken({ userId: user.id, email: user.email })
     const expiresAt = getSessionExpiresAt()
 
@@ -57,11 +60,17 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         token,
         expiresAt,
-        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        ip: clientIp,
       },
     })
 
-    logger.info('User registered:', user.id, user.email)
+    await createAuditLog(user.id, 'USER_REGISTER', {
+      email: user.email,
+      ip: clientIp,
+    })
+    await createAuditLog(user.id, 'SESSION_CREATE', {
+      ip: clientIp,
+    })
 
     return jsonResponse(
       {

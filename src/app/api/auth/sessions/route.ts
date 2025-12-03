@@ -5,6 +5,7 @@ import { handleCors, jsonResponse, errorResponse } from '@/lib/response'
 import { requireAuth } from '@/lib/middleware'
 import { logger } from '@/lib/logger'
 import { protectRoute } from '@/lib/arcjet'
+import { createAuditLog } from '@/lib/audit'
 
 export async function GET(request: NextRequest) {
   const corsResponse = handleCors(request)
@@ -59,12 +60,16 @@ export async function DELETE(request: NextRequest) {
           userId: auth.userId,
         },
       })
-      logger.info('Session deleted:', sessionId, auth.userId)
+      await createAuditLog(auth.userId, 'SESSION_DELETE', {
+        sessionId,
+      })
     } else {
       await prisma.session.deleteMany({
         where: { userId: auth.userId },
       })
-      logger.info('All sessions deleted for user:', auth.userId)
+      await createAuditLog(auth.userId, 'USER_LOGOUT', {
+        allSessions: true,
+      })
     }
 
     return jsonResponse({ success: true }, 200, request.headers.get('origin'))

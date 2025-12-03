@@ -15,14 +15,17 @@
   "dependencies": {
     "@arcjet/inspect": "^1.0.0-beta.14",
     "@arcjet/next": "^1.0.0-beta.14",
+    "@polar-sh/nextjs": "^0.7.0",
     "@prisma/client": "^5.19.1",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
-    "next": "^14.2.5",
+    "next": "^16.0.7",
     "pg": "^8.11.3",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "speakeasy": "^2.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -30,8 +33,10 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.14.12",
     "@types/pg": "^8.10.9",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/speakeasy": "^2.0.10",
     "prisma": "^5.19.1",
     "typescript": "^5.5.4"
   }
