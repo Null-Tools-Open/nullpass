@@ -165,6 +165,7 @@ export async function protectRoute(
       }
     }
 
+    // Skip hosting IP check for allowed origins (server-to-server requests)
     if (decision.ip.isHosting() && !isAllowedOrigin) {
       logger.ups('Blocked hosting IP');
       return NextResponse.json(
