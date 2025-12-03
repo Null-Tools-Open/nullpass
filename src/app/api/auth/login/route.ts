@@ -142,7 +142,6 @@ export async function POST(request: NextRequest) {
       data: { updatedAt: new Date() },
     })
 
-    // Create audit logs
     await createAuditLog(user.id, 'USER_LOGIN', {
       ip: clientIp,
       twoFactorUsed: user.twoFactorEnabled && !!verificationCode,
