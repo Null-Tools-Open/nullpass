@@ -1,6 +1,14 @@
 import { NextRequest } from 'next/server'
 
 export function getClientIp(request: NextRequest): string {
+  const clientIp = request.headers.get('x-client-ip')
+  if (clientIp) {
+    if (/^(\d{1,3}\.){3}\d{1,3}$/.test(clientIp)) {
+      return clientIp
+    }
+    return clientIp
+  }
+  
   const forwardedFor = request.headers.get('x-forwarded-for')
   const realIp = request.headers.get('x-real-ip')
   
