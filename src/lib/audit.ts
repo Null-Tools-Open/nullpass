@@ -17,6 +17,7 @@ type AuditAction =
   | 'SUBSCRIPTION_CREATE'
   | 'SUBSCRIPTION_UPDATE'
   | 'SUBSCRIPTION_CANCEL'
+  | 'SUBSCRIPTION_REVOKE'
   | 'UNKNOWN'
 
 export async function createAuditLog(

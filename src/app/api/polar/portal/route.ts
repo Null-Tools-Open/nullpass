@@ -1,4 +1,3 @@
-import { CustomerPortal } from "@polar-sh/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from '@/lib/middleware'
 import { handleCors, errorResponse } from '@/lib/response'
@@ -44,11 +43,8 @@ export const GET = async (req: NextRequest) => {
     return errorResponse('Failed to verify customer. Please contact support.', 500, req.headers.get('origin'))
   }
 
-  const customerPortalHandler = CustomerPortal({
-    accessToken: process.env.POLAR_ACCESS_TOKEN!,
-    getCustomerId: async () => entitlement.polarCustomerId!,
-    server: (process.env.POLAR_SERVER as "sandbox" | "production") || "production",
-  })
+  const polarServer = process.env.POLAR_SERVER === 'sandbox' ? 'sandbox-' : ''
+  const portalUrl = `https://${polarServer}polar.sh/portal/${entitlement.polarCustomerId}`
 
-  return customerPortalHandler(req)
+  return NextResponse.redirect(portalUrl, 307)
 }

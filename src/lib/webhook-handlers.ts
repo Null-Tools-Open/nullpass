@@ -74,13 +74,25 @@ export async function handlePolarWebhook(
         break
       }
 
-      case 'subscription.canceled':
-      case 'subscription.revoked': {
+      case 'subscription.canceled': {
         const subscription = payload.data as any
         const userId = subscription.metadata?.userId
         if (userId && typeof userId === 'string') {
           await cancelUserSubscription(userId, service)
           await createAuditLog(userId, 'SUBSCRIPTION_CANCEL', {
+            service,
+            subscriptionId: subscription.id,
+          })
+        }
+        break
+      }
+
+      case 'subscription.revoked': {
+        const subscription = payload.data as any
+        const userId = subscription.metadata?.userId
+        if (userId && typeof userId === 'string') {
+          await revokeUserSubscription(userId, service)
+          await createAuditLog(userId, 'SUBSCRIPTION_REVOKE', {
             service,
             subscriptionId: subscription.id,
           })
@@ -184,17 +196,36 @@ async function cancelUserSubscription(userId: string, service: ServiceIdentifier
         service,
       },
       data: {
-        polarSubscriptionId: null,
         polarSubscriptionStatus: 'canceled',
+        updatedAt: new Date(),
+      },
+    })
+
+    logger.info('User subscription marked as canceled (access until period end):', userId, service)
+  } catch (error) {
+    logger.error('Failed to cancel user subscription:', error)
+  }
+}
+
+async function revokeUserSubscription(userId: string, service: ServiceIdentifier) {
+  try {
+    await prisma.userServiceEntitlement.updateMany({
+      where: {
+        userId,
+        service,
+      },
+      data: {
+        polarSubscriptionId: null,
+        polarSubscriptionStatus: 'revoked',
         isPremium: false,
         tier: 'free',
         updatedAt: new Date(),
       },
     })
 
-    logger.info('User subscription canceled:', userId, service)
+    logger.info('User subscription revoked (immediate access removal):', userId, service)
   } catch (error) {
-    logger.error('Failed to cancel user subscription:', error)
+    logger.error('Failed to revoke user subscription:', error)
   }
 }
 
