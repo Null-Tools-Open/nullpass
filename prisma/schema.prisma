@@ -32,6 +32,10 @@ enum AuditAction {
   SUBSCRIPTION_UPDATE
   SUBSCRIPTION_CANCEL
   SUBSCRIPTION_REVOKE
+  USER_BAN
+  USER_DISABLE
+  SERVICE_ENTITLEMENT_DISCONNECT
+  SERVICE_ENTITLEMENT_CONNECT
   UNKNOWN
 }
 
@@ -42,6 +46,8 @@ model User {
   avatar            String?                    @db.Text
   displayName       String?
   twoFactorEnabled  Boolean                    @default(false)
+  banned            Boolean                    @default(false)
+  disabled          Boolean                    @default(false)
   twoFactorSecret   String?
   createdAt         DateTime                   @default(now())
   updatedAt         DateTime                   @updatedAt
@@ -89,6 +95,7 @@ model UserServiceEntitlement {
   isPremium               Boolean           @default(false)
   accessFlags             Json?
   metadata                Json?
+  connected               Boolean           @default(true)
   customStorageLimit      Int?
   customApiKeyLimit       Int?
   polarCustomerId         String?
