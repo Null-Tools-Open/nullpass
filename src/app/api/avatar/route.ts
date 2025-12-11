@@ -18,6 +18,36 @@ async function ensureUserAvatarDir(userId: string): Promise<string> {
   return userDir
 }
 
+async function deleteOldAvatar(userId: string): Promise<void> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatar: true },
+    })
+
+    if (!user?.avatar) {
+      return
+    }
+
+    if (user.avatar.startsWith('http://') || user.avatar.startsWith('https://')) {
+      return
+    }
+
+    const normalizedPath = user.avatar.replace(/\//g, path.sep)
+    const oldAvatarPath = path.join(AVATARS_BASE_PATH, normalizedPath)
+    
+    try {
+      await fs.unlink(oldAvatarPath)
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        logger.warn('Failed to delete old avatar:', error)
+      }
+    }
+  } catch (error) {
+    logger.warn('Error deleting old avatar:', error)
+  }
+}
+
 async function getUserAvatarPath(userId: string): Promise<string | null> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -116,6 +146,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    await deleteOldAvatar(auth.userId)
+
     const userDir = await ensureUserAvatarDir(auth.userId)
 
     const ext = file.type === 'image/jpeg' ? '.jpg' :
@@ -140,8 +172,6 @@ export async function POST(request: NextRequest) {
     await createAuditLog(auth.userId, 'USER_UPDATE', {
       fields: ['avatar'],
     })
-
-    logger.info('Avatar uploaded:', auth.userId, filename)
 
     return jsonResponse(
       {
