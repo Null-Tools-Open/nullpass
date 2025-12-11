@@ -33,6 +33,10 @@ export async function GET(request: NextRequest) {
           connect: 'POST /api/connect/connect',
           disconnect: 'POST /api/connect/disconnect',
         },
+        avatar: {
+          get: 'GET /api/avatar',
+          set: 'POST /api/avatar',
+        },
         health: 'GET /api/health',
       },
     },
