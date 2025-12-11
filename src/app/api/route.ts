@@ -28,6 +28,11 @@ export async function GET(request: NextRequest) {
           list: 'GET /api/services?service=DROP',
           update: 'POST /api/services',
         },
+        connect: {
+          check: 'GET /api/connect/check?service=DROP',
+          connect: 'POST /api/connect/connect',
+          disconnect: 'POST /api/connect/disconnect',
+        },
         health: 'GET /api/health',
       },
     },
