@@ -9,6 +9,7 @@ export function getClientIp(request: NextRequest): string {
     return clientIp
   }
   
+  // TODO - Add a encyrption method to the ip address, so moderators, devs, founders, cant see the ip address, only the user
   const forwardedFor = request.headers.get('x-forwarded-for')
   const realIp = request.headers.get('x-real-ip')
   
