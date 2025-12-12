@@ -116,3 +116,124 @@ export async function POST(request: NextRequest) {
     return errorResponse('Internal server error', 500, request.headers.get('origin'))
   }
 }
+
+export async function GET(request: NextRequest) {
+  const corsResponse = handleCors(request)
+  if (corsResponse) return corsResponse
+
+  const blocked = await protectRoute(request)
+  if (blocked) return blocked
+
+  const auth = await requireAuth(request)
+  if ('error' in auth) return auth.error
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: auth.userId },
+      select: {
+        id: true,
+        email: true,
+        disabled: true,
+      },
+    })
+
+    if (!user) {
+      return errorResponse('User not found', 404, request.headers.get('origin'))
+    }
+
+    return jsonResponse(
+      {
+        disabled: user.disabled,
+        email: user.email,
+      },
+      200,
+      request.headers.get('origin')
+    )
+  } catch (error) {
+    logger.error('Get account status error:', error)
+    return errorResponse('Internal server error', 500, request.headers.get('origin'))
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const corsResponse = handleCors(request)
+  if (corsResponse) return corsResponse
+
+  const blocked = await protectRoute(request, { requested: 2 })
+  if (blocked) return blocked
+
+  const auth = await requireAuth(request)
+  if ('error' in auth) return auth.error
+
+  try {
+    const body = await request.json()
+    const validated = disableAccountSchema.parse(body)
+
+    const user = await prisma.user.findUnique({
+      where: { id: auth.userId },
+    })
+
+    if (!user || !user.passwordHash) {
+      return errorResponse('User not found', 404, request.headers.get('origin'))
+    }
+
+    if (!user.disabled) {
+      return errorResponse('Account is not disabled', 400, request.headers.get('origin'))
+    }
+
+    const isValid = await bcrypt.compare(validated.password, user.passwordHash)
+    if (!isValid) {
+      logger.warn('Account enable failed: Invalid password', auth.userId)
+      return errorResponse('Invalid password', 401, request.headers.get('origin'))
+    }
+
+    if (user.twoFactorEnabled) {
+      if (!validated.verificationCode) {
+        return errorResponse('2FA verification code is required', 401, request.headers.get('origin'))
+      }
+
+      if (!user.twoFactorSecret) {
+        return errorResponse('2FA is enabled but secret is missing', 500, request.headers.get('origin'))
+      }
+
+      const isValid2FA = speakeasy.totp.verify({
+        secret: user.twoFactorSecret,
+        encoding: 'base32',
+        token: validated.verificationCode,
+        window: 2,
+      })
+
+      if (!isValid2FA) {
+        logger.warn('Account enable failed: Invalid 2FA code', auth.userId)
+        return errorResponse('Invalid 2FA verification code', 401, request.headers.get('origin'))
+      }
+    }
+
+    await createAuditLog(auth.userId, 'USER_UPDATE', {
+      email: user.email,
+      action: 'account_enabled',
+    })
+
+    await prisma.user.update({
+      where: { id: auth.userId },
+      data: {
+        disabled: false,
+      },
+    })
+
+    logger.info(`User account enabled: ${user.email}`, auth.userId)
+
+    return jsonResponse(
+      { success: true, message: 'Account enabled successfully' },
+      200,
+      request.headers.get('origin')
+    )
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      logger.warn('Enable account validation error:', error.errors)
+      return errorResponse(error.errors[0].message, 400, request.headers.get('origin'))
+    }
+    logger.error('Enable account error:', error)
+    return errorResponse('Internal server error', 500, request.headers.get('origin'))
+  }
+}
