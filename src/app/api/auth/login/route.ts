@@ -9,7 +9,7 @@ import { getSessionExpiresAt } from '@/lib/session'
 import { logger } from '@/lib/logger'
 import { protectRoute } from '@/lib/arcjet'
 import { createAuditLog } from '@/lib/audit'
-import { getClientIp } from '@/lib/ip-utils'
+import { getClientIp, getClientIpForStorage, decryptIp } from '@/lib/ip-utils'
 
 export async function POST(request: NextRequest) {
   const corsResponse = handleCors(request)
@@ -83,11 +83,12 @@ export async function POST(request: NextRequest) {
     }
 
     const clientIp = getClientIp(request)
+    const encryptedIp = getClientIpForStorage(request, user.id)
 
     const existingSession = await prisma.session.findFirst({
       where: {
         userId: user.id,
-        ip: clientIp,
+        ip: encryptedIp,
         expiresAt: {
           gt: new Date(),
         },
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           token,
           expiresAt,
-          ip: clientIp,
+          ip: encryptedIp,
         },
       })
       sessionCreated = true
@@ -142,15 +143,14 @@ export async function POST(request: NextRequest) {
       data: { updatedAt: new Date() },
     })
 
-    // Create audit logs
     await createAuditLog(user.id, 'USER_LOGIN', {
-      ip: clientIp,
+      ip: encryptedIp,
       twoFactorUsed: user.twoFactorEnabled && !!verificationCode,
     })
     
     if (sessionCreated) {
       await createAuditLog(user.id, 'SESSION_CREATE', {
-        ip: clientIp,
+        ip: encryptedIp,
       })
     }
 

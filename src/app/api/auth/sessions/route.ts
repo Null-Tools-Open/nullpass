@@ -6,6 +6,7 @@ import { requireAuth } from '@/lib/middleware'
 import { logger } from '@/lib/logger'
 import { protectRoute } from '@/lib/arcjet'
 import { createAuditLog } from '@/lib/audit'
+import { decryptIp } from '@/lib/ip-utils'
 
 export async function GET(request: NextRequest) {
   const corsResponse = handleCors(request)
@@ -32,7 +33,12 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return jsonResponse({ sessions }, 200, request.headers.get('origin'))
+    const sessionsWithDecryptedIp = sessions.map(session => ({
+      ...session,
+      ip: decryptIp(session.ip, auth.userId),
+    }))
+
+    return jsonResponse({ sessions: sessionsWithDecryptedIp }, 200, request.headers.get('origin'))
   } catch (error) {
     logger.error('Get sessions error:', error)
     return errorResponse('Internal server error', 500, request.headers.get('origin'))

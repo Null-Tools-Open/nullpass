@@ -8,7 +8,7 @@ import { getSessionExpiresAt } from '@/lib/session'
 import { logger } from '@/lib/logger'
 import { protectRoute } from '@/lib/arcjet'
 import { createAuditLog } from '@/lib/audit'
-import { getClientIp } from '@/lib/ip-utils'
+import { getClientIp, getClientIpForStorage } from '@/lib/ip-utils'
 
 export async function POST(request: NextRequest) {
   const corsResponse = handleCors(request)
@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
     })
 
     const clientIp = getClientIp(request)
+    const encryptedIp = getClientIpForStorage(request, user.id)
 
     const token = generateToken({ userId: user.id, email: user.email })
     const expiresAt = getSessionExpiresAt()
@@ -61,16 +62,16 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         token,
         expiresAt,
-        ip: clientIp,
+        ip: encryptedIp,
       },
     })
 
     await createAuditLog(user.id, 'USER_REGISTER', {
       email: user.email,
-      ip: clientIp,
+      ip: encryptedIp,
     })
     await createAuditLog(user.id, 'SESSION_CREATE', {
-      ip: clientIp,
+      ip: encryptedIp,
     })
 
     return jsonResponse(

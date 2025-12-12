@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { handleCors, jsonResponse, errorResponse } from '@/lib/response'
 import { requireAuth } from '@/lib/middleware'
 import { protectRoute } from '@/lib/arcjet'
+import { decryptIp } from '@/lib/ip-utils'
 
 export async function GET(request: NextRequest) {
   const corsResponse = handleCors(request)
@@ -46,9 +47,23 @@ export async function GET(request: NextRequest) {
       prisma.auditLog.count({ where }),
     ])
 
+    const logsWithDecryptedIp = logs.map(log => {
+      const data = log.data as any
+      if (data && typeof data === 'object' && 'ip' in data && typeof data.ip === 'string') {
+        return {
+          ...log,
+          data: {
+            ...data,
+            ip: decryptIp(data.ip, auth.userId),
+          },
+        }
+      }
+      return log
+    })
+
     return jsonResponse(
       {
-        logs,
+        logs: logsWithDecryptedIp,
         total,
         limit,
         offset,
