@@ -164,6 +164,8 @@ export async function POST(request: NextRequest) {
         },
         token,
         services: user.serviceAccess,
+        banned: user.banned,
+        disabled: user.disabled,
       },
       200,
       request.headers.get('origin')
