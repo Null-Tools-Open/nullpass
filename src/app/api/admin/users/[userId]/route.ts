@@ -9,7 +9,7 @@ import { z } from 'zod'
 const INTERNAL_SECRET = process.env.INTERNAL_SECRET
 
 const updateUserServiceSchema = z.object({
-  service: z.enum(['DROP', 'MAILS', 'VAULT', 'DB']),
+  service: z.enum(['DROP', 'MAILS', 'VAULT', 'DB', 'BOARD']),
   tier: z.string().optional(),
   isPremium: z.boolean().optional(),
   accessFlags: z.record(z.any()).optional(),

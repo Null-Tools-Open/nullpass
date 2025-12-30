@@ -8,7 +8,7 @@ import { protectRoute } from '@/lib/arcjet'
 import { z } from 'zod'
 
 const updateServiceSchema = z.object({
-  service: z.enum(['DROP', 'MAILS', 'VAULT', 'DB']),
+  service: z.enum(['DROP', 'MAILS', 'VAULT', 'DB', 'BOARD']),
   tier: z.string().optional(),
   isPremium: z.boolean().optional(),
   accessFlags: z.record(z.any()).optional(),
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url)
-    const service = searchParams.get('service') as 'DROP' | 'MAILS' | 'VAULT' | 'DB' | null
+    const service = searchParams.get('service') as 'DROP' | 'MAILS' | 'VAULT' | 'DB' | 'BOARD' | null
 
     const where: any = { userId: auth.userId }
     if (service) {

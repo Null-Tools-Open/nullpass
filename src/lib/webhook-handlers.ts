@@ -3,7 +3,7 @@ import { logger } from '@/lib/logger'
 import { sendDiscordWebhook, notifyPaymentSuccess, getEventEmbed } from '@/lib/discord'
 import { createAuditLog } from '@/lib/audit'
 
-type ServiceIdentifier = 'DROP' | 'MAILS' | 'VAULT' | 'DB'
+type ServiceIdentifier = 'DROP' | 'MAILS' | 'VAULT' | 'DB' | 'BOARD'
 
 export async function handlePolarWebhook(
   payload: any,

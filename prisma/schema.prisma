@@ -12,6 +12,7 @@ enum ServiceIdentifier {
   MAILS
   VAULT
   DB
+  BOARD
 }
 
 enum AuditAction {

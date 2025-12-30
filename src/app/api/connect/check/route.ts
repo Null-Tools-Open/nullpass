@@ -17,14 +17,14 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url)
-    const service = searchParams.get('service') as 'DROP' | 'MAILS' | 'VAULT' | 'DB' | null
+    const service = searchParams.get('service') as 'DROP' | 'MAILS' | 'VAULT' | 'DB' | 'BOARD' | null
 
     if (!service) {
       return errorResponse('Service parameter is required', 400, request.headers.get('origin'))
     }
 
-    if (!['DROP', 'MAILS', 'VAULT', 'DB'].includes(service)) {
-      return errorResponse('Invalid service. Must be DROP, MAILS, VAULT, or DB', 400, request.headers.get('origin'))
+    if (!['DROP', 'MAILS', 'VAULT', 'DB', 'BOARD'].includes(service)) {
+      return errorResponse('Invalid service. Must be DROP, MAILS, VAULT, DB, or BOARD', 400, request.headers.get('origin'))
     }
 
     const entitlement = await prisma.userServiceEntitlement.findUnique({

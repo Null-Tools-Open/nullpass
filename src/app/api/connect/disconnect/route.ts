@@ -8,7 +8,7 @@ import { createAuditLog } from '@/lib/audit'
 import { z } from 'zod'
 
 const disconnectSchema = z.object({
-  service: z.enum(['DROP', 'MAILS', 'VAULT', 'DB']),
+  service: z.enum(['DROP', 'MAILS', 'VAULT', 'DB', 'BOARD']),
 })
 
 export async function POST(request: NextRequest) {
